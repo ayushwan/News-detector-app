@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Fake News Detection System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="text-center py-5">
+                <div class="error-illustration mb-4">
+                    <i class="fas fa-exclamation-triangle fa-8x text-warning mb-4"></i>
+                </div>
+                
+                <h1 class="display-1 fw-bold text-danger">500</h1>
+                <h2 class="mb-3">Internal Server Error</h2>
+                <p class="lead text-muted mb-4">
+                    Oops! Something went wrong on our end. Our team has been notified 
+                    and is working to fix the issue. Please try again in a few moments.
+                </p>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>What happened?</strong> Our server encountered an unexpected error while processing your request.
+                </div>
+                
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-4">
+                    <button onclick="location.reload()" class="btn btn-primary btn-lg">
+                        <i class="fas fa-redo me-2"></i>Try Again
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </button>
+                </div>
+                
+                <hr class="my-5">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bug fa-2x text-danger mb-3"></i>
+                                <h6>Report a Problem</h6>
+                                <p class="text-muted small">
+                                    If this error persists, please let us know what you were doing when it occurred.
+                                </p>
+                                <button class="btn btn-sm btn-outline-danger" onclick="reportError()">
+                                    Report Issue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-life-ring fa-2x text-info mb-3"></i>
+                                <h6>Need Immediate Help?</h6>
+                                <p class="text-muted small">
+                                    Try using a different browser or clearing your browser cache.
+                                </p>
+                                <button class="btn btn-sm btn-outline-info" onclick="showTroubleshooting()">
+                                    Troubleshooting
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Error ID: <code>{{ request.url }}</code> | 
+                        Time: <span id="errorTime"></span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-illustration {
+    animation: shake 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.display-1 {
+    font-size: 6rem;
+    background: linear-gradient(135deg, #e74a3b 0%, #c0392b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.alert {
+    border-left: 4px solid #f39c12;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Display current time
+    document.getElementById('errorTime').textContent = new Date().toLocaleString();
+    
+    // Add animation to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate__animated', 'animate__fadeInUp');
+    });
+});
+
+function reportError() {
+    Swal.fire({
+        title: 'Report Error',
+        html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label">What were you trying to do?</label>
+                    <textarea class="form-control" id="errorDescription" rows="3" placeholder="Describe what happened..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Your Email (optional)</label>
+                    <input type="email" class="form-control" id="userEmail" placeholder="your@email.com">
+                </div>
+                <small class="text-muted">
+                    This helps us understand and fix the problem faster.
+                </small>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Send Report',
+        cancelButtonText: 'Cancel',
+        width: '500px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // In a real application, this would send the error report to the server
+            Swal.fire({
+                icon: 'success',
+                title: 'Report Sent!',
+                text: 'Thank you for helping us improve. We\'ll investigate this issue.',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    });
+}
+
+function showTroubleshooting() {
+    Swal.fire({
+        title: 'Troubleshooting Tips',
+        html: `
+            <div class="text-start">
+                <ol>
+                    <li class="mb-2">
+                        <strong>Refresh the page:</strong> Press F5 or Ctrl+R (Cmd+R on Mac)
+                    </li>
+                    <li class="mb-2">
+                        <strong>Clear browser cache:</strong> Go to your browser settings and clear cache/cookies
+                    </li>
+                    <li class="mb-2">
+                        <strong>Try incognito mode:</strong> Open a private/incognito browser window
+                    </li>
+                    <li class="mb-2">
+                        <strong>Check your connection:</strong> Ensure you have a stable internet connection
+                    </li>
+                    <li class="mb-2">
+                        <strong>Try again later:</strong> The issue might be temporary
+                    </li>
+                </ol>
+            </div>
+        `,
+        width: '600px',
+        showCloseButton: true,
+        showConfirmButton: false
+    });
+}
+
+// Auto-refresh option after 30 seconds
+setTimeout(() => {
+    Swal.fire({
+        title: 'Still having trouble?',
+        text: 'Would you like to try refreshing the page?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, refresh',
+        cancelButtonText: 'No, thanks'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            location.reload();
+        }
+    });
+}, 30000);
+</script>
+{% endblock %}
