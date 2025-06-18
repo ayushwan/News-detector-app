@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Fake News Detection System{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-gradient text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="animate__animated animate__fadeInLeft">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-shield-alt text-warning"></i>
+                        Fight Fake News
+                    </h1>
+                    <p class="lead mb-4">
+                        Use our AI-powered system to detect misinformation and verify news authenticity. 
+                        Upload text, files, or URLs to get instant analysis with confidence scores.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg px-4">
+                            <i class="fas fa-rocket me-2"></i>Get Started
+                        </a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="animate__animated animate__fadeInRight">
+                    <div class="text-center">
+                        <i class="fas fa-search display-1 text-warning opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Stats Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">System Statistics</h2>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h3 class="counter" data-target="1250">0</h3>
+                    <p class="text-muted">Registered Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
+                    <h3 class="counter" data-target="5670">0</h3>
+                    <p class="text-muted">Articles Analyzed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-ban fa-3x text-danger mb-3"></i>
+                    <h3 class="counter" data-target="2340">0</h3>
+                    <p class="text-muted">Fake News Detected</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card text-center h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-percent fa-3x text-info mb-3"></i>
+                    <h3><span class="counter" data-target="94">0</span>%</h3>
+                    <p class="text-muted">Accuracy Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">How It Works</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card text-center p-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-upload fa-3x text-primary"></i>
+                </div>
+                <h4>1. Submit Content</h4>
+                <p class="text-muted">
+                    Upload text directly, upload a .txt file, or provide a URL 
+                    from any news website for analysis.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card text-center p-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-brain fa-3x text-success"></i>
+                </div>
+                <h4>2. AI Analysis</h4>
+                <p class="text-muted">
+                    Our machine learning model analyzes the content using 
+                    advanced natural language processing techniques.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card text-center p-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-chart-line fa-3x text-warning"></i>
+                </div>
+                <h4>3. Get Results</h4>
+                <p class="text-muted">
+                    Receive instant results with confidence scores and 
+                    share findings on social media platforms.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card bg-primary text-white border-0 shadow">
+                <div class="card-body py-5">
+                    <h3 class="mb-3">Ready to Start Detecting Fake News?</h3>
+                    <p class="mb-4">Join thousands of users who trust our AI-powered detection system.</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg px-5">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+}
+
+.feature-card {
+    transition: transform 0.3s ease;
+    border-radius: 10px;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.counter {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--bs-primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animated counters
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.counter');
+    
+    const animateCounter = (counter) => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const increment = target / 100;
+        let current = 0;
+        
+        const updateCounter = () => {
+            if (current < target) {
+                current += increment;
+                counter.textContent = Math.floor(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                counter.textContent = target;
+            }
+        };
+        
+        updateCounter();
+    };
+    
+    // Intersection Observer for animation trigger
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    });
+    
+    counters.forEach(counter => {
+        observer.observe(counter);
+    });
+});
+</script>
+{% endblock %}
