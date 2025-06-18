@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fake-news-detector
+    name: news-detector-app
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python main.py"
