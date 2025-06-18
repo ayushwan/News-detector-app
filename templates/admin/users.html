@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="mb-0">
+                                <i class="fas fa-users me-2"></i>User Management
+                            </h3>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="card-body border-bottom">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Filter by Status:</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">All Status</option>
+                                <option value="active" {{ 'selected' if status_filter == 'active' }}>Active</option>
+                                <option value="blocked" {{ 'selected' if status_filter == 'blocked' }}>Blocked</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="search" class="form-label">Search Users:</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="Search by name or email...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="d-grid w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    {% if status_filter or search %}
+                        <div class="mt-2">
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if users.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Submissions</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users.items %}
+                                    <tr id="user-{{ user.id }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar me-3">
+                                                    {% if user.avatar %}
+                                                        <img src="{{ user.avatar }}" class="rounded-circle" width="40" height="40" alt="Avatar">
+                                                    {% else %}
+                                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ user.name }}</div>
+                                                    <small class="text-muted">ID: {{ user.id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if user.status == 'active' else 'danger' }} fs-6">
+                                                <i class="fas fa-{{ 'check' if user.status == 'active' else 'ban' }} me-1"></i>
+                                                {{ user.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold">{{ user.get_submission_count() }}</span>
+                                                <small class="text-muted">
+                                                    <span class="text-success">{{ user.get_real_count() }} Real</span> • 
+                                                    <span class="text-danger">{{ user.get_fake_count() }} Fake</span>
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-nowrap">
+                                                <div class="fw-medium">{{ user.created_at.strftime('%b %d, %Y') }}</div>
+                                                <small class="text-muted">{{ user.created_at.strftime('%I:%M %p') }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-{{ 'warning' if user.status == 'active' else 'success' }}" 
+                                                            onclick="return confirmAction('{{ 'block' if user.status == 'active' else 'unblock' }}', '{{ user.name }}')">
+                                                        <i class="fas fa-{{ 'ban' if user.status == 'active' else 'check' }}"></i>
+                                                    </button>
+                                                </form>
+                                                <button class="btn btn-outline-info" onclick="viewUserDetails({{ user.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-danger" 
+                                                            onclick="return confirmDelete('{{ user.name }}')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if users.pages > 1 %}
+                        <div class="card-footer bg-white">
+                            <nav aria-label="User pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if users.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.users', page=users.prev_num, status=status_filter, search=search) }}">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in users.iter_pages() %}
+                                        {% if page_num %}
+                                            {% if page_num != users.page %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('admin.users', page=page_num, status=status_filter, search=search) }}">
+                                                        {{ page_num }}
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ page_num }}</span>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">…</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if users.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.users', page=users.next_num, status=status_filter, search=search) }}">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No users found</h4>
+                            <p class="text-muted mb-0">
+                                {% if status_filter or search %}
+                                    No users match your current filters.
+                                {% else %}
+                                    No users have registered yet.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userModalContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// User data for modal display
+const userData = {
+    {% for user in users.items %}
+    {{ user.id }}: {
+        name: "{{ user.name|safe }}",
+        email: "{{ user.email|safe }}",
+        status: "{{ user.status }}",
+        avatar: "{{ user.avatar or '' }}",
+        created_at: "{{ user.created_at.strftime('%B %d, %Y at %I:%M %p') }}",
+        submission_count: {{ user.get_submission_count() }},
+        real_count: {{ user.get_real_count() }},
+        fake_count: {{ user.get_fake_count() }}
+    },
+    {% endfor %}
+};
+
+function confirmAction(action, userName) {
+    return confirm(`Are you sure you want to ${action} user "${userName}"?`);
+}
+
+function confirmDelete(userName) {
+    return confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone and will also delete all their submissions.`);
+}
+
+function viewUserDetails(userId) {
+    const user = userData[userId];
+    if (!user) return;
+    
+    const modalContent = document.getElementById('userModalContent');
+    modalContent.innerHTML = `
+        <div class="row">
+            <div class="col-md-4 text-center mb-3">
+                ${user.avatar ? 
+                    `<img src="${user.avatar}" class="rounded-circle mb-3" width="120" height="120" alt="Avatar">` :
+                    `<div class="bg-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center text-white" style="width: 120px; height: 120px;">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>`
+                }
+                <h5>${user.name}</h5>
+                <p class="text-muted">${user.email}</p>
+                <span class="badge bg-${user.status === 'active' ? 'success' : 'danger'} fs-6">
+                    ${user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                </span>
+            </div>
+            <div class="col-md-8">
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <h6 class="text-muted">User ID</h6>
+                        <p>${userId}</p>
+                    </div>
+                    <div class="col-sm-8">
+                        <h6 class="text-muted">Member Since</h6>
+                        <p>${user.created_at}</p>
+                    </div>
+                </div>
+                
+                <h6 class="text-muted">Submission Statistics</h6>
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-primary">${user.submission_count}</div>
+                            <div class="text-muted">Total</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-success">${user.real_count}</div>
+                            <div class="text-muted">Real News</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-danger">${user.fake_count}</div>
+                            <div class="text-muted">Fake News</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${user.submission_count > 0 ? `
+                    <h6 class="text-muted">Analysis Breakdown</h6>
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar bg-success" style="width: ${(user.real_count / user.submission_count) * 100}%">
+                            Real ${((user.real_count / user.submission_count) * 100).toFixed(1)}%
+                        </div>
+                        <div class="progress-bar bg-danger" style="width: ${(user.fake_count / user.submission_count) * 100}%">
+                            Fake ${((user.fake_count / user.submission_count) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+    modal.show();
+}
+
+// Real-time search
+document.getElementById('search').addEventListener('input', function() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+        this.form.submit();
+    }, 500);
+});
+</script>
+{% endblock %}
