@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Submission Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="mb-0">
+                                <i class="fas fa-list me-2"></i>Submission Management
+                            </h3>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.download_report') }}" class="btn btn-success">
+                                    <i class="fas fa-download me-2"></i>Export CSV
+                                </a>
+                                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left me-2"></i>Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="card-body border-bottom">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="result" class="form-label">Filter by Result:</label>
+                            <select class="form-select" id="result" name="result">
+                                <option value="">All Results</option>
+                                <option value="FAKE" {{ 'selected' if result_filter == 'FAKE' }}>Fake News</option>
+                                <option value="REAL" {{ 'selected' if result_filter == 'REAL' }}>Real News</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="source" class="form-label">Filter by Source:</label>
+                            <select class="form-select" id="source" name="source">
+                                <option value="">All Sources</option>
+                                <option value="text" {{ 'selected' if source_filter == 'text' }}>Text Input</option>
+                                <option value="file" {{ 'selected' if source_filter == 'file' }}>File Upload</option>
+                                <option value="url" {{ 'selected' if source_filter == 'url' }}>URL Analysis</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="user" class="form-label">Search by User:</label>
+                            <input type="text" class="form-control" id="user" name="user" 
+                                   value="{{ user_filter }}" placeholder="Search by user name or email...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="d-grid w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    {% if result_filter or source_filter or user_filter %}
+                        <div class="mt-2">
+                            <a href="{{ url_for('admin.submissions') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if submissions.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Article</th>
+                                        <th>User</th>
+                                        <th>Source</th>
+                                        <th>Result</th>
+                                        <th>Confidence</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for submission in submissions.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-start">
+                                                <div>
+                                                    <div class="fw-bold mb-1" style="max-width: 250px;">
+                                                        {{ submission.article_title[:60] }}{% if submission.article_title|length > 60 %}...{% endif %}
+                                                    </div>
+                                                    {% if submission.source_url %}
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-external-link-alt me-1"></i>
+                                                            <a href="{{ submission.source_url }}" target="_blank" class="text-decoration-none">
+                                                                {{ submission.source_url[:40] }}...
+                                                            </a>
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar me-2">
+                                                    {% if submission.user.avatar %}
+                                                        <img src="{{ submission.user.avatar }}" class="rounded-circle" width="30" height="30" alt="Avatar">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">
+                                                            <i class="fas fa-user fa-sm"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ submission.user.name }}</div>
+                                                    <small class="text-muted">{{ submission.user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-{{ 'edit' if submission.source_type == 'text' else 'upload' if submission.source_type == 'file' else 'link' }} me-1"></i>
+                                                {{ submission.source_type.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'danger' if submission.result == 'FAKE' else 'success' }} fs-6">
+                                                <i class="fas fa-{{ 'ban' if submission.result == 'FAKE' else 'check-circle' }} me-1"></i>
+                                                {{ submission.result }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 60px; height: 15px;">
+                                                    <div class="progress-bar bg-{{ 'danger' if submission.result == 'FAKE' else 'success' }}" 
+                                                         style="width: {{ submission.confidence }}%">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ "%.0f"|format(submission.confidence) }}%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-nowrap">
+                                                <div class="fw-medium">{{ submission.timestamp.strftime('%b %d, %Y') }}</div>
+                                                <small class="text-muted">{{ submission.timestamp.strftime('%I:%M %p') }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info" onclick="viewSubmissionDetails({{ submission.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-primary" onclick="generateReport({{ submission.id }})">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if submissions.pages > 1 %}
+                        <div class="card-footer bg-white">
+                            <nav aria-label="Submission pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if submissions.has_prev %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.submissions', page=submissions.prev_num, result=result_filter, source=source_filter, user=user_filter) }}">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in submissions.iter_pages() %}
+                                        {% if page_num %}
+                                            {% if page_num != submissions.page %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="{{ url_for('admin.submissions', page=page_num, result=result_filter, source=source_filter, user=user_filter) }}">
+                                                        {{ page_num }}
+                                                    </a>
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ page_num }}</span>
+                                                </li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <span class="page-link">…</span>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if submissions.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('admin.submissions', page=submissions.next_num, result=result_filter, source=source_filter, user=user_filter) }}">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">No submissions found</h4>
+                            <p class="text-muted mb-0">
+                                {% if result_filter or source_filter or user_filter %}
+                                    No submissions match your current filters.
+                                {% else %}
+                                    No submissions have been made yet.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submission Details Modal -->
+<div class="modal fade" id="submissionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="submissionModalContent">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="generateCurrentReport()">
+                    <i class="fas fa-download me-2"></i>Download Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Submission data for modal display
+const submissionData = {
+    {% for submission in submissions.items %}
+    {{ submission.id }}: {
+        title: "{{ submission.article_title|safe }}",
+        content: "{{ submission.article_content|safe }}",
+        result: "{{ submission.result }}",
+        confidence: {{ submission.confidence }},
+        source_type: "{{ submission.source_type }}",
+        source_url: "{{ submission.source_url or '' }}",
+        timestamp: "{{ submission.timestamp.strftime('%B %d, %Y at %I:%M %p') }}",
+        user: {
+            name: "{{ submission.user.name|safe }}",
+            email: "{{ submission.user.email|safe }}",
+            avatar: "{{ submission.user.avatar or '' }}"
+        }
+    },
+    {% endfor %}
+};
+
+let currentSubmissionId = null;
+
+function viewSubmissionDetails(submissionId) {
+    const submission = submissionData[submissionId];
+    if (!submission) return;
+    
+    currentSubmissionId = submissionId;
+    
+    const modalContent = document.getElementById('submissionModalContent');
+    modalContent.innerHTML = `
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-4">
+                    <h4 class="mb-3">${submission.title}</h4>
+                    
+                    <div class="alert alert-${submission.result === 'FAKE' ? 'danger' : 'success'}">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="fas fa-${submission.result === 'FAKE' ? 'ban' : 'check-circle'} fa-2x"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="mb-0">${submission.result} NEWS</h5>
+                                <p class="mb-0">Confidence: ${submission.confidence.toFixed(1)}%</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted">Content</h6>
+                        <div class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                            <p class="mb-0">${submission.content}</p>
+                        </div>
+                    </div>
+                    
+                    ${submission.source_url ? `
+                        <div class="mb-3">
+                            <h6 class="text-muted">Source URL</h6>
+                            <a href="${submission.source_url}" target="_blank" class="text-decoration-none">
+                                ${submission.source_url}
+                                <i class="fas fa-external-link-alt ms-1"></i>
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Analysis Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-1">Submitted By</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-2">
+                                    ${submission.user.avatar ? 
+                                        `<img src="${submission.user.avatar}" class="rounded-circle" width="30" height="30" alt="Avatar">` :
+                                        `<div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px;">
+                                            <i class="fas fa-user fa-sm"></i>
+                                        </div>`
+                                    }
+                                </div>
+                                <div>
+                                    <div class="fw-medium">${submission.user.name}</div>
+                                    <small class="text-muted">${submission.user.email}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-1">Source Type</h6>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-${submission.source_type === 'text' ? 'edit' : submission.source_type === 'file' ? 'upload' : 'link'} me-1"></i>
+                                ${submission.source_type.charAt(0).toUpperCase() + submission.source_type.slice(1)}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-1">Analysis Date</h6>
+                            <p class="mb-0">${submission.timestamp}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-1">Confidence Score</h6>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-${submission.result === 'FAKE' ? 'danger' : 'success'}" 
+                                     style="width: ${submission.confidence}%">
+                                    ${submission.confidence.toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('submissionDetailsModal'));
+    modal.show();
+}
+
+function generateReport(submissionId) {
+    const submission = submissionData[submissionId];
+    if (!submission) return;
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add header
+    doc.setFontSize(18);
+    doc.text('Fake News Detection Report', 20, 30);
+    
+    // Add submission details
+    doc.setFontSize(12);
+    doc.text(`Submission ID: ${submissionId}`, 20, 50);
+    doc.text(`Title: ${submission.title}`, 20, 65);
+    doc.text(`Result: ${submission.result}`, 20, 80);
+    doc.text(`Confidence: ${submission.confidence.toFixed(1)}%`, 20, 95);
+    doc.text(`Source Type: ${submission.source_type}`, 20, 110);
+    doc.text(`Analysis Date: ${submission.timestamp}`, 20, 125);
+    
+    // Add user info
+    doc.text(`Submitted by: ${submission.user.name} (${submission.user.email})`, 20, 140);
+    
+    if (submission.source_url) {
+        doc.text(`Source URL: ${submission.source_url}`, 20, 155);
+    }
+    
+    // Add content preview
+    const content = submission.content.substring(0, 500) + (submission.content.length > 500 ? '...' : '');
+    const splitContent = doc.splitTextToSize(`Content: ${content}`, 170);
+    doc.text(splitContent, 20, 170);
+    
+    // Save the PDF
+    doc.save(`submission-report-${submissionId}.pdf`);
+}
+
+function generateCurrentReport() {
+    if (currentSubmissionId) {
+        generateReport(currentSubmissionId);
+    }
+}
+
+// Real-time search
+document.getElementById('user').addEventListener('input', function() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+        this.form.submit();
+    }, 500);
+});
+</script>
+{% endblock %}
