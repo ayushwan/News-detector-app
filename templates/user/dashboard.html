@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Fake News Detection System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2">Welcome back, {{ current_user.name }}!</h2>
+                            <p class="mb-0">Ready to analyze some news? Use our AI-powered detection system to verify authenticity.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{{ url_for('user.analyze') }}" class="btn btn-warning btn-lg">
+                                <i class="fas fa-search me-2"></i>Analyze Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-file-alt fa-3x"></i>
+                    </div>
+                    <h3 class="text-primary mb-1">{{ total_submissions }}</h3>
+                    <p class="text-muted mb-0">Total Submissions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-danger mb-2">
+                        <i class="fas fa-ban fa-3x"></i>
+                    </div>
+                    <h3 class="text-danger mb-1">{{ fake_count }}</h3>
+                    <p class="text-muted mb-0">Fake News Detected</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-check-circle fa-3x"></i>
+                    </div>
+                    <h3 class="text-success mb-1">{{ real_count }}</h3>
+                    <p class="text-muted mb-0">Real News Verified</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-percentage fa-3x"></i>
+                    </div>
+                    <h3 class="text-info mb-1">
+                        {% if total_submissions > 0 %}
+                            {{ "%.1f"|format((real_count / total_submissions) * 100) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Accuracy Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('user.analyze') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-edit fa-2x d-block mb-2"></i>
+                                Analyze Text
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('user.analyze') }}" class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-upload fa-2x d-block mb-2"></i>
+                                Upload File
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('user.analyze') }}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-link fa-2x d-block mb-2"></i>
+                                Analyze URL
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Submissions</h5>
+                    <a href="{{ url_for('user.history') }}" class="btn btn-sm btn-outline-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_submissions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Article Title</th>
+                                        <th>Source</th>
+                                        <th>Result</th>
+                                        <th>Confidence</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for submission in recent_submissions %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">{{ submission.article_title[:50] }}{% if submission.article_title|length > 50 %}...{% endif %}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-{{ 'edit' if submission.source_type == 'text' else 'upload' if submission.source_type == 'file' else 'link' }} me-1"></i>
+                                                {{ submission.source_type.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'danger' if submission.result == 'FAKE' else 'success' }}">
+                                                <i class="fas fa-{{ 'ban' if submission.result == 'FAKE' else 'check-circle' }} me-1"></i>
+                                                {{ submission.result }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="width: 80px; height: 20px;">
+                                                <div class="progress-bar bg-{{ 'danger' if submission.result == 'FAKE' else 'success' }}" 
+                                                     style="width: {{ submission.confidence }}%">
+                                                    {{ "%.1f"|format(submission.confidence) }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ submission.timestamp.strftime('%b %d, %Y') }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No submissions yet</h5>
+                            <p class="text-muted">Start by analyzing your first news article!</p>
+                            <a href="{{ url_for('user.analyze') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Analyze News
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to stats cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('animate__animated', 'animate__fadeInUp');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze News - Fake News Detection System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-search me-2"></i>Analyze News Article
+                    </h2>
+                    <p class="mb-0 mt-2">Choose how you want to submit your news article for analysis</p>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Method Selection Tabs -->
+                    <ul class="nav nav-pills nav-justified mb-4" id="analysisMethod" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="text-tab" data-bs-toggle="pill" data-bs-target="#text-content" type="button" role="tab">
+                                <i class="fas fa-edit me-2"></i>Text Input
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="file-tab" data-bs-toggle="pill" data-bs-target="#file-content" type="button" role="tab">
+                                <i class="fas fa-upload me-2"></i>File Upload
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="url-tab" data-bs-toggle="pill" data-bs-target="#url-content" type="button" role="tab">
+                                <i class="fas fa-link me-2"></i>URL Analysis
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="analysisMethodContent">
+                        <!-- Text Input Tab -->
+                        <div class="tab-pane fade show active" id="text-content" role="tabpanel">
+                            <form action="{{ url_for('user.analyze') }}" method="POST" id="textForm">
+                                <input type="hidden" name="source_type" value="text">
+                                
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">
+                                        <i class="fas fa-heading me-1"></i>Article Title
+                                    </label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           placeholder="Enter the article title..." required>
+                                    <div class="form-text">Provide a descriptive title for the news article</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">
+                                        <i class="fas fa-file-alt me-1"></i>Article Content
+                                    </label>
+                                    <textarea class="form-control" id="content" name="content" rows="10" 
+                                              placeholder="Paste the full article content here..." required></textarea>
+                                    <div class="form-text">
+                                        <span id="contentCounter">0</span> characters
+                                        <span class="text-muted">| Minimum 50 characters recommended</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="analyzeTextBtn">
+                                        <i class="fas fa-brain me-2"></i>Analyze Article
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- File Upload Tab -->
+                        <div class="tab-pane fade" id="file-content" role="tabpanel">
+                            <form action="{{ url_for('user.analyze') }}" method="POST" enctype="multipart/form-data" id="fileForm">
+                                <input type="hidden" name="source_type" value="file">
+                                
+                                <div class="mb-3">
+                                    <label for="file_title" class="form-label">
+                                        <i class="fas fa-heading me-1"></i>Article Title (Optional)
+                                    </label>
+                                    <input type="text" class="form-control" id="file_title" name="file_title" 
+                                           placeholder="Leave blank to use filename as title">
+                                    <div class="form-text">If not provided, filename will be used as title</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="file" class="form-label">
+                                        <i class="fas fa-file-upload me-1"></i>Upload Text File
+                                    </label>
+                                    <input type="file" class="form-control" id="file" name="file" accept=".txt" required>
+                                    <div class="form-text">Only .txt files are supported. Maximum size: 16MB</div>
+                                </div>
+                                
+                                <div class="mb-3" id="filePreview" style="display: none;">
+                                    <label class="form-label">File Preview:</label>
+                                    <div class="border rounded p-3 bg-light">
+                                        <div id="filePreviewContent" class="text-muted"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg" id="analyzeFileBtn">
+                                        <i class="fas fa-brain me-2"></i>Analyze File
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- URL Analysis Tab -->
+                        <div class="tab-pane fade" id="url-content" role="tabpanel">
+                            <form action="{{ url_for('user.analyze') }}" method="POST" id="urlForm">
+                                <input type="hidden" name="source_type" value="url">
+                                
+                                <div class="mb-3">
+                                    <label for="url" class="form-label">
+                                        <i class="fas fa-globe me-1"></i>News Article URL
+                                    </label>
+                                    <input type="url" class="form-control" id="url" name="url" 
+                                           placeholder="https://example.com/news-article" required>
+                                    <div class="form-text">
+                                        Enter a direct link to a news article. We'll extract the content automatically.
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Tip:</strong> Make sure the URL points to the actual article page, not the homepage.
+                                    Popular news sites work best.
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-info btn-lg" id="analyzeUrlBtn">
+                                        <i class="fas fa-brain me-2"></i>Analyze URL
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" style="width: 4rem; height: 4rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4>Analyzing Article...</h4>
+                <p class="text-muted mb-0">Our AI is processing your content. This may take a few moments.</p>
+                <div class="progress mt-3" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analyzer.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for text content
+    const contentTextarea = document.getElementById('content');
+    const contentCounter = document.getElementById('contentCounter');
+    
+    contentTextarea.addEventListener('input', function() {
+        const count = this.value.length;
+        contentCounter.textContent = count;
+        
+        if (count < 50) {
+            contentCounter.className = 'text-warning';
+        } else {
+            contentCounter.className = 'text-success';
+        }
+    });
+    
+    // File preview functionality
+    const fileInput = document.getElementById('file');
+    const filePreview = document.getElementById('filePreview');
+    const filePreviewContent = document.getElementById('filePreviewContent');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type === 'text/plain') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const preview = content.length > 200 ? content.substring(0, 200) + '...' : content;
+                filePreviewContent.textContent = preview;
+                filePreview.style.display = 'block';
+            };
+            reader.readAsText(file);
+        } else {
+            filePreview.style.display = 'none';
+        }
+    });
+    
+    // Form submission with loading modal
+    const forms = ['textForm', 'fileForm', 'urlForm'];
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Basic validation
+                if (this.checkValidity()) {
+                    loadingModal.show();
+                }
+            });
+        }
+    });
+    
+    // URL validation
+    const urlInput = document.getElementById('url');
+    urlInput.addEventListener('input', function() {
+        const url = this.value;
+        if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+            this.value = 'https://' + url;
+        }
+    });
+    
+    // Tab switching animation
+    const tabButtons = document.querySelectorAll('#analysisMethod button');
+    tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', function() {
+            const targetPane = document.querySelector(this.getAttribute('data-bs-target'));
+            targetPane.classList.add('animate__animated', 'animate__fadeIn');
+            
+            setTimeout(() => {
+                targetPane.classList.remove('animate__animated', 'animate__fadeIn');
+            }, 500);
+        });
+    });
+});
+</script>
+{% endblock %}

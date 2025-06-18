@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Fake News Detection System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <!-- Profile Card -->
+            <div class="card border-0 shadow">
+                <div class="card-body text-center p-4">
+                    <div class="profile-avatar mb-3">
+                        {% if current_user.avatar %}
+                            <img src="{{ current_user.avatar }}" class="rounded-circle" width="120" height="120" alt="Profile Picture">
+                        {% else %}
+                            <div class="avatar-placeholder rounded-circle mx-auto d-flex align-items-center justify-content-center bg-primary text-white" style="width: 120px; height: 120px;">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="mb-1">{{ current_user.name }}</h4>
+                    <p class="text-muted mb-3">{{ current_user.email }}</p>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="h5 mb-0 text-primary">{{ current_user.get_submission_count() }}</div>
+                            <small class="text-muted">Submissions</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h5 mb-0 text-success">{{ current_user.get_real_count() }}</div>
+                            <small class="text-muted">Real</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h5 mb-0 text-danger">{{ current_user.get_fake_count() }}</div>
+                            <small class="text-muted">Fake</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card border-0 shadow mt-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Analysis Stats</h6>
+                </div>
+                <div class="card-body">
+                    {% set total = current_user.get_submission_count() %}
+                    {% if total > 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-success">Real News</span>
+                                <span>{{ "%.1f"|format((current_user.get_real_count() / total) * 100) }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: {{ (current_user.get_real_count() / total) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-0">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-danger">Fake News</span>
+                                <span>{{ "%.1f"|format((current_user.get_fake_count() / total) * 100) }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: {{ (current_user.get_fake_count() / total) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No submissions yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Profile Settings -->
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-content" type="button" role="tab">
+                                <i class="fas fa-user me-2"></i>Profile Settings
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-content" type="button" role="tab">
+                                <i class="fas fa-lock me-2"></i>Change Password
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body">
+                    <div class="tab-content" id="profileTabsContent">
+                        <!-- Profile Settings Tab -->
+                        <div class="tab-pane fade show active" id="profile-content" role="tabpanel">
+                            <form method="POST" id="profileForm">
+                                <input type="hidden" name="action" value="update_profile">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Full Name
+                                        </label>
+                                        <input type="text" class="form-control" id="name" name="name" 
+                                               value="{{ current_user.name }}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email Address
+                                        </label>
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               value="{{ current_user.email }}" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="avatar" class="form-label">
+                                        <i class="fas fa-image me-1"></i>Avatar URL (Optional)
+                                    </label>
+                                    <input type="url" class="form-control" id="avatar" name="avatar" 
+                                           value="{{ current_user.avatar or '' }}" 
+                                           placeholder="https://example.com/avatar.jpg">
+                                    <div class="form-text">Provide a URL to your profile picture</div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="text-muted mb-0">
+                                            <small><i class="fas fa-calendar me-1"></i>Member since {{ current_user.created_at.strftime('%B %Y') }}</small>
+                                        </p>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Change Password Tab -->
+                        <div class="tab-pane fade" id="password-content" role="tabpanel">
+                            <form method="POST" id="passwordForm">
+                                <input type="hidden" name="action" value="change_password">
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">
+                                        <i class="fas fa-lock me-1"></i>Current Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('current_password')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">
+                                        <i class="fas fa-key me-1"></i>New Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Password must be at least 6 characters long</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">
+                                        <i class="fas fa-check me-1"></i>Confirm New Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="password-strength mb-3">
+                                    <div class="strength-meter">
+                                        <div class="strength-fill" id="passwordStrengthFill"></div>
+                                    </div>
+                                    <small class="text-muted" id="passwordStrengthText">Password strength</small>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.password-strength {
+    margin-top: 0.5rem;
+}
+
+.strength-meter {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.strength-fill {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 3px;
+}
+
+.strength-weak { background-color: #dc3545; }
+.strength-fair { background-color: #fd7e14; }
+.strength-good { background-color: #ffc107; }
+.strength-strong { background-color: #28a745; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Password strength checker
+    document.getElementById('new_password').addEventListener('input', function() {
+        const password = this.value;
+        const strength = calculatePasswordStrength(password);
+        updatePasswordStrengthMeter(strength);
+    });
+    
+    function calculatePasswordStrength(password) {
+        let score = 0;
+        
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        
+        return score;
+    }
+    
+    function updatePasswordStrengthMeter(strength) {
+        const fill = document.getElementById('passwordStrengthFill');
+        const text = document.getElementById('passwordStrengthText');
+        
+        const levels = [
+            { width: '0%', class: '', text: 'Password strength' },
+            { width: '20%', class: 'strength-weak', text: 'Very weak' },
+            { width: '40%', class: 'strength-weak', text: 'Weak' },
+            { width: '60%', class: 'strength-fair', text: 'Fair' },
+            { width: '80%', class: 'strength-good', text: 'Good' },
+            { width: '100%', class: 'strength-strong', text: 'Strong' }
+        ];
+        
+        const level = levels[strength] || levels[0];
+        fill.style.width = level.width;
+        fill.className = `strength-fill ${level.class}`;
+        text.textContent = level.text;
+    }
+    
+    // Form validation
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Password Mismatch',
+                text: 'New passwords do not match!'
+            });
+        } else if (newPassword.length < 6) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Password Too Short',
+                text: 'Password must be at least 6 characters long!'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
