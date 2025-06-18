@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fake-news-detector
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SESSION_SECRET
+        value: f518befa263eddee6c58bf6890120d5bf862078e499c536591b8b0fa3fb5a0c1
+      - key: DATABASE_URL
+        value: "sqlite:///fakenews.db"
